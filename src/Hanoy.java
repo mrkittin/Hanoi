@@ -1,10 +1,8 @@
-import java.util.*;
-
 public class Hanoy {
-    static final int maxDisk = 4;
+    static final int maxDisk = 2;
     static int move = 0;
     //out stems storage
-    static Stem[] stems = new Stem[maxDisk];
+    static Stem[] stems = new Stem[3];
 
     public static void main(String[] args) {
         //initialize 3 stems
@@ -16,17 +14,36 @@ public class Hanoy {
         for (int i = maxDisk ; i > 0; i--) {
             stems[0].addDisk(i);
         }
+        printStatus();
 
-        for (int i = maxDisk; i >= 0; i--) {
-            if (move(findByHighestDisk(i), stems[2])) {
-                printStatus();
+        //main cycle
+        int currMax = maxDisk;
+        int tries = 0;
+        while(currMax > 0) {
+            tries++; if (tries > 10) break;
+            if (currMax == stems[0].getHighestDisk() || currMax == stems[1].getHighestDisk()) {
+                if (move(findByHighestDisk(currMax), stems[2])) {
+                    printStatus();
+                    currMax--;
+                } else {
+                    //TODO
+                }
             } else {
-                moveAllDisksExceptCurrentMaxToStem2(i);
+                moveAllDisksExceptCurrentMaxToStem1or2(currMax, currMax % 2 == 0 ? stems[1] : stems[0]);
             }
         }
     }
 
-    private static void moveAllDisksExceptCurrentMaxToStem2(int currMax) {
+    private static void moveAllDisksExceptCurrentMaxToStem1or2(int currMax, Stem neededStem) {
+        if (findByHighestDisk(currMax-1) != null) {
+            if (move(findByHighestDisk(currMax-1), neededStem)) {
+                printStatus();
+            } else {
+                //TODO
+            }
+        } else {
+            //
+        }
     }
 
     public static Stem findByHighestDisk(int disk) {
@@ -65,7 +82,7 @@ public class Hanoy {
     }
 
     static boolean move(Stem start, Stem finish) {
-        if (start.getHighestDisk() < finish.getHighestDisk() || finish.getHighestDisk() == 0) {
+        if ((start.getHighestDisk() < finish.getHighestDisk() || finish.getHighestDisk() == 0) && start.getHighestDisk() != 0) {
             int disk = start.removeDisk();
             return finish.addDisk(disk);
         }
@@ -77,6 +94,7 @@ public class Hanoy {
         System.out.print(stems[0].toString());
         System.out.print(stems[1].toString());
         System.out.println(stems[2].toString());
+        move++;
     }
 
 

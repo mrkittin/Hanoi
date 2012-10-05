@@ -15,7 +15,11 @@ public class Stem {
     }
 
     int removeDisk() {
-        return stack.pop();
+        try {
+            return stack.pop();
+        } catch (EmptyStackException e) {
+            return 0;
+        }
     }
 
     int getHighestDisk() {
