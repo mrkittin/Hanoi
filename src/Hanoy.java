@@ -1,5 +1,5 @@
 public class Hanoy {
-    static final int maxDisk = 2;
+    static final int maxDisk = 3;
     static int move = 0;
     //out stems storage
     static Stem[] stems = new Stem[3];
@@ -29,21 +29,39 @@ public class Hanoy {
                     //TODO
                 }
             } else {
-                moveAllDisksExceptCurrentMaxToStem1or2(currMax, currMax % 2 == 0 ? stems[1] : stems[0]);
+                moveAllDisksExceptCurrentMaxToStem1or2(currMax, invert1to2andViceVersa(findByAnyDisk(currMax)));
             }
         }
     }
 
     private static void moveAllDisksExceptCurrentMaxToStem1or2(int currMax, Stem neededStem) {
-        if (findByHighestDisk(currMax-1) != null) {
-            if (move(findByHighestDisk(currMax-1), neededStem)) {
-                printStatus();
+        boolean success = false;
+        int tries = 0;
+        while (!success) {
+            tries++; if (tries > 10) break;
+            if (findByHighestDisk(currMax-1) != null) {
+                if (move(findByHighestDisk(currMax-1), neededStem)) {
+                    printStatus();
+                    success = true;
+                } else {
+                    //TODO
+                }
             } else {
-                //TODO
+                if (neededStem.equals(stems[1])) {
+                    move(findByAnyDisk(1), stems[2]); printStatus();
+                } else {
+                    move(findByAnyDisk(1), neededStem); printStatus();
+                }
+                move(findByAnyDisk(2), findAvailableStem(2, findByAnyDisk(2))); printStatus();
+                move(findByHighestDisk(1), findByHighestDisk(2)); printStatus(); break; //TODO resolve this break
             }
-        } else {
-            //
         }
+    }
+
+    private static Stem invert1to2andViceVersa(Stem stem) {
+        if (stem.equals(stems[0])) return stems[1];
+        if (stem.equals(stems[1])) return stems[0];
+        return null;
     }
 
     public static Stem findByHighestDisk(int disk) {
@@ -87,6 +105,18 @@ public class Hanoy {
             return finish.addDisk(disk);
         }
         else return false;
+    }
+
+    private static Stem findAvailableStem(int disk, Stem initialStem) {
+        if (initialStem.equals(stems[0])) {
+            if (stems[1].getHighestDisk() > disk || stems[1].getHighestDisk() == 0) return stems[1];
+            if (stems[2].getHighestDisk() > disk || stems[2].getHighestDisk() == 0) return stems[2];
+        }
+        if (initialStem.equals(stems[1])) {
+            if (stems[0].getHighestDisk() > disk || stems[0].getHighestDisk() == 0) return stems[0];
+            if (stems[2].getHighestDisk() > disk || stems[2].getHighestDisk() == 0) return stems[2];
+        }
+        return null;
     }
 
     private static void printStatus() {
