@@ -1,8 +1,15 @@
+import java.util.AbstractMap;
+import java.util.Map;
+import java.util.Stack;
+
 public class Hanoy {
-    static final int maxDisk = 3;
-    static int move = 0;
-    //out stems storage
+    static final int maxDisk = 5;
+    static int currentMove = 0;
+    //stems storage
     static Stem[] stems = new Stem[3];
+    //scheduled moves storage
+    static Stack<AbstractMap.SimpleEntry<Integer, Stem>> scOpStack = new Stack<AbstractMap.SimpleEntry<Integer, Stem>>();
+
 
     public static void main(String[] args) {
         //initialize 3 stems
@@ -35,27 +42,52 @@ public class Hanoy {
     }
 
     private static void moveAllDisksExceptCurrentMaxToStem1or2(int currMax, Stem neededStem) {
-        boolean success = false;
-        int tries = 0;
-        while (!success) {
-            tries++; if (tries > 10) break;
-            if (findByHighestDisk(currMax-1) != null) {
-                if (move(findByHighestDisk(currMax-1), neededStem)) {
-                    printStatus();
-                    success = true;
+        int swarmLow = currMax - 1;
+        int swarmHigh = 1;
+        Stem tempStem = neededStem;
+
+        //cycle: iterate through all disks in swarm and move them to needed stem
+        for (int i = swarmLow; i >= swarmHigh; i--) {
+            if (i == 2) {
+                move1and2toNeededStem(tempStem);
+                if (!scOpStack.isEmpty()) {
+                    for (int j = 0; j <= scOpStack.size(); j++) {
+                        move(scOpStack); printStatus();
+                    }
+                    move1and2toNeededStem(neededStem);
+                    return;
                 } else {
-                    //TODO
+                    //do nothing
                 }
+            }
+            if (findByHighestDisk(i) != null && (neededStem.getHighestDisk() > i || neededStem.getHighestDisk() == 0)) {
+                move(findByHighestDisk(i), neededStem); printStatus();
             } else {
-                if (neededStem.equals(stems[1])) {
-                    move(findByAnyDisk(1), stems[2]); printStatus();
-                } else {
-                    move(findByAnyDisk(1), neededStem); printStatus();
-                }
-                move(findByAnyDisk(2), findAvailableStem(2, findByAnyDisk(2))); printStatus();
-                move(findByHighestDisk(1), findByHighestDisk(2)); printStatus(); break; //TODO resolve this break
+                scheduleMove(i, neededStem);
+                tempStem = findStemThatIsNotAorB(tempStem, findByHighestDisk(1));
             }
         }
+    }
+
+    private static void scheduleMove(int disk, Stem stem) {
+        scOpStack.push(new AbstractMap.SimpleEntry<Integer, Stem>(disk, stem));
+    }
+
+    private static void move1and2toNeededStem(Stem neededStem) {
+        Stem loc1 = findByHighestDisk(1);
+        Stem loc2 = findByAnyDisk(2);
+        move(loc1, findStemThatIsNotAorB(loc1, neededStem)); printStatus();
+        move(loc2, neededStem); printStatus();
+        move(findByHighestDisk(1), neededStem); printStatus();
+    }
+
+    private static Stem findStemThatIsNotAorB(Stem a, Stem b) {
+        for (Stem stem : stems) {
+            if (stem.equals(a) || stem.equals(b)) {
+                //going further
+            } else return stem;
+        }
+        return null;
     }
 
     private static Stem invert1to2andViceVersa(Stem stem) {
@@ -107,6 +139,20 @@ public class Hanoy {
         else return false;
     }
 
+    static boolean move(Stack scOpStack) {
+        AbstractMap.SimpleEntry entry = (AbstractMap.SimpleEntry)scOpStack.pop();
+        int disk = (Integer)entry.getKey();
+        Stem finish = (Stem)entry.getValue();
+        Stem start = findByHighestDisk(disk);
+        if (move(start, finish)) {
+            return true;
+        }
+        else {
+            scheduleMove(disk, finish);
+            return false;
+        }
+    }
+
     private static Stem findAvailableStem(int disk, Stem initialStem) {
         if (initialStem.equals(stems[0])) {
             if (stems[1].getHighestDisk() > disk || stems[1].getHighestDisk() == 0) return stems[1];
@@ -120,12 +166,11 @@ public class Hanoy {
     }
 
     private static void printStatus() {
-        System.out.print("move " + move + ": ");
+        System.out.print("move " + currentMove + ": ");
         System.out.print(stems[0].toString());
         System.out.print(stems[1].toString());
         System.out.println(stems[2].toString());
-        move++;
+        currentMove++;
     }
-
 
 }
