@@ -27,7 +27,7 @@ public class Hanoy {
         int currMax = maxDisk;
         int tries = 0;
         while(currMax > 0) {
-            tries++; if (tries > 10) break;
+            tries++; if (tries > 100) break;
             if (currMax == stems[0].getHighestDisk() || currMax == stems[1].getHighestDisk()) {
                 if (move(findByHighestDisk(currMax), stems[2])) {
                     printStatus();
@@ -52,10 +52,51 @@ public class Hanoy {
                 move1and2toNeededStem(tempStem);
                 if (!scOpStack.isEmpty()) {
                     for (int j = 0; j <= scOpStack.size(); j++) {
-                        move(scOpStack); printStatus();
+                        if (move(scOpStack)) {
+                            printStatus();
+                        } else {
+                            move1and2toNeededStem(findStemThatIsNotAorB(findByHighestDisk(1), findByHighestDisk(scOpStack.elements().nextElement().getKey())));
+                            move(scOpStack);
+                            printStatus();
+                        }
                     }
-                    move1and2toNeededStem(neededStem);
-                    return;
+                    //move1and2toNeededStem(neededStem);
+                    if (findByAnyDisk(swarmLow).equals(neededStem) && findByAnyDisk(swarmHigh).equals(neededStem)) {
+                        return;
+                    }
+                    if (findByHighestDisk(swarmLow) != null) {
+                        tempStem = findByHighestDisk(swarmLow);
+                        for (int k = swarmLow-1; k >= swarmHigh; k--) {
+                            if (k > 2) {
+                                scheduleMove(k, tempStem);
+                                tempStem = findStemThatIsNotAorB(tempStem, findByHighestDisk(1));
+                            }
+                            if (k == 2) {
+                                if (scOpStack.isEmpty()) {
+                                    move1and2toNeededStem(neededStem);
+                                    return;
+                                }
+                                move1and2toNeededStem(findStemThatIsNotAorB(findByHighestDisk(swarmLow), findByHighestDisk(1)));
+                                if (!scOpStack.isEmpty()) {
+                                    for (int z = 0; z <= scOpStack.size(); z++) {
+                                        if (move(scOpStack)) {
+                                            printStatus();
+                                        } else {
+                                            move1and2toNeededStem(findStemThatIsNotAorB(findByHighestDisk(1), findByHighestDisk(scOpStack.elements().nextElement().getKey())));
+                                            move(scOpStack);
+                                            printStatus();
+                                        }
+                                    }
+                                } else {
+                                    //do nothing
+                                }
+                            }
+                            if (k == 1) {
+                                move1and2toNeededStem(neededStem);
+                                return;
+                            }
+                        }
+                    }
                 } else {
                     //do nothing
                 }
@@ -63,7 +104,7 @@ public class Hanoy {
             if (findByHighestDisk(i) != null && (neededStem.getHighestDisk() > i || neededStem.getHighestDisk() == 0)) {
                 move(findByHighestDisk(i), neededStem); printStatus();
             } else {
-                scheduleMove(i, neededStem);
+                scheduleMove(i, tempStem);
                 tempStem = findStemThatIsNotAorB(tempStem, findByHighestDisk(1));
             }
         }
