@@ -7,8 +7,7 @@ public class Hanoy {
     static int currentMove = 0;
     //stems storage
     static Stem[] stems = new Stem[3];
-    //scheduled moves storage
-    static Stack<AbstractMap.SimpleEntry<Integer, Stem>> scOpStack = new Stack<AbstractMap.SimpleEntry<Integer, Stem>>();
+
 
 
     public static void main(String[] args) {
@@ -44,50 +43,50 @@ public class Hanoy {
     }
 
     private static void moveAllDisksExceptCurrentMaxToStem1or2(int currMax, Stem neededStem) {
+        //external scheduled moves storage
+        Stack<AbstractMap.SimpleEntry<Integer, Stem>> scOpStackEx = new Stack<AbstractMap.SimpleEntry<Integer, Stem>>();
+        //internal scheduled moves storage
+        Stack<AbstractMap.SimpleEntry<Integer, Stem>> scOpStackInt = new Stack<AbstractMap.SimpleEntry<Integer, Stem>>();
         int swarmLow = currMax - 1;
         int swarmHigh = 1;
         Stem tempStem = neededStem;
 
         //cycle: iterate through all disks in swarm and move them to needed stem
         for (int i = swarmLow; i >= swarmHigh; i--) {
-            if (findByAnyDisk(swarmLow).equals(neededStem) && findByAnyDisk(swarmHigh).equals(neededStem)) {
-                return;
-            }
             if (i == 2) {
                 move1and2toNeededStem(tempStem);
-                if (!scOpStack.isEmpty()) {
-                    for (int j = 0; j <= scOpStack.size(); j++) {
-                        if (move(scOpStack)) {
+                while (!scOpStackEx.isEmpty()) {
+                        if (move(scOpStackEx)) {
                             printStatus();
                         } else {
-                            move1and2toNeededStem(findStemThatIsNotAorB(findByHighestDisk(1), findByHighestDisk(scOpStack.elements().nextElement().getKey())));
-                            move(scOpStack);
+                            move1and2toNeededStem(findStemThatIsNotAorB(findByHighestDisk(1), findByHighestDisk(scOpStackEx.peek().getKey())));
+                            move(scOpStackEx);
                             printStatus();
                         }
-                    }
+
                     if (findByAnyDisk(swarmLow).equals(neededStem) && findByAnyDisk(swarmHigh).equals(neededStem)) {
                         return;
                     }
-                    if (findByHighestDisk(swarmLow) != null) {
+                    if (findByHighestDisk(swarmLow) != null && findByHighestDisk(swarmLow).equals(neededStem)) {
                         tempStem = findByHighestDisk(swarmLow);
                         for (int k = swarmLow-1; k >= swarmHigh; k--) {
                             if (k > 2) {
-                                scheduleMove(k, tempStem);
+                                scheduleMove(k, tempStem, scOpStackInt);
                                 tempStem = findStemThatIsNotAorB(tempStem, findByHighestDisk(1));
                             }
                             if (k == 2) {
-                                if (scOpStack.isEmpty()) {
+                                if (scOpStackInt.isEmpty()) {
                                     move1and2toNeededStem(neededStem);
                                     return;
                                 }
                                 move1and2toNeededStem(findStemThatIsNotAorB(findByHighestDisk(swarmLow), findByHighestDisk(1)));
-                                if (!scOpStack.isEmpty()) {
-                                    for (int z = 0; z <= scOpStack.size(); z++) {
-                                        if (move(scOpStack)) {
+                                if (!scOpStackInt.isEmpty()) {
+                                    for (int z = 0; z <= scOpStackEx.size(); z++) {
+                                        if (move(scOpStackInt)) {
                                             printStatus();
                                         } else {
-                                            move1and2toNeededStem(findStemThatIsNotAorB(findByHighestDisk(1), findByHighestDisk(scOpStack.elements().nextElement().getKey())));
-                                            move(scOpStack);
+                                            move1and2toNeededStem(findStemThatIsNotAorB(findByHighestDisk(1), findByHighestDisk(scOpStackEx.elements().nextElement().getKey())));
+                                            move(scOpStackInt);
                                             printStatus();
                                         }
                                     }
@@ -101,19 +100,18 @@ public class Hanoy {
                             }
                         }
                     }
-                } else {
-                    return;
                 }
+                return;
             }
             if (i > 2) {
-                scheduleMove(i, tempStem);
+                scheduleMove(i, tempStem, scOpStackEx);
                 tempStem = findStemThatIsNotAorB(tempStem, findByHighestDisk(1));
             }
         }
     }
 
-    private static void scheduleMove(int disk, Stem stem) {
-        scOpStack.push(new AbstractMap.SimpleEntry<Integer, Stem>(disk, stem));
+    private static void scheduleMove(int disk, Stem stem, Stack<AbstractMap.SimpleEntry<Integer, Stem>> where) {
+        where.push(new AbstractMap.SimpleEntry<Integer, Stem>(disk, stem));
     }
 
     private static void move1and2toNeededStem(Stem neededStem) {
@@ -182,8 +180,8 @@ public class Hanoy {
         else return false;
     }
 
-    static boolean move(Stack scOpStack) {
-        AbstractMap.SimpleEntry entry = (AbstractMap.SimpleEntry)scOpStack.pop();
+    static boolean move(Stack<AbstractMap.SimpleEntry<Integer, Stem>> stack) {
+        AbstractMap.SimpleEntry entry = (AbstractMap.SimpleEntry)stack.pop();
         int disk = (Integer)entry.getKey();
         Stem finish = (Stem)entry.getValue();
         Stem start = findByHighestDisk(disk);
@@ -191,7 +189,7 @@ public class Hanoy {
             return true;
         }
         else {
-            scheduleMove(disk, finish);
+            scheduleMove(disk, finish, stack);
             return false;
         }
     }
