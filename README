@@ -1,1 +1,5 @@
-Hanoy tower
+Hanoi tower implementation without using recursion.
+
+http://en.wikipedia.org/wiki/Tower_of_Hanoi
+
+Works only for up to 5 disks. The algorithm is incomplete.

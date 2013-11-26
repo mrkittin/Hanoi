@@ -1,5 +1,4 @@
 import java.util.AbstractMap;
-import java.util.Map;
 import java.util.Stack;
 
 public class Hanoy {
@@ -7,8 +6,6 @@ public class Hanoy {
     static int currentMove = 0;
     //stems storage
     static Stem[] stems = new Stem[3];
-
-
 
     public static void main(String[] args) {
         //initialize 3 stems
